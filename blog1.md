@@ -7,6 +7,5 @@ slug:
 cover: 
 publishAs: 
 canonical:
-ignorePost: true
 ---
 Blah Blah Blah
