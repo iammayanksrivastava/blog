@@ -1,5 +1,5 @@
 ---
-title: Does it make sense to use Databricks Autoloader?
+title: Getting Started with Databricks Autoloader
 domain: factorsense.nl 
 tags: databricks, azure
 subtitle: Incremental processing of new data as they arrive in cloud storage without any additional setup.
