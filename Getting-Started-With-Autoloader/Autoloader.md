@@ -4,7 +4,7 @@ domain: factorsense.nl
 tags: databricks, azure
 subtitle: Incremental processing of new data as they arrive in cloud storage without any additional setup.
 slug: 
-cover: 
+cover: https://cdn.hashnode.com/res/hashnode/image/upload/v1658824807546/fxJUh0mxf.jpg?auto=compress
 publishAs: 
 canonical:
 ---
