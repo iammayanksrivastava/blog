@@ -42,11 +42,110 @@ I usually call this layer as a snapshot of the source but in a standardized form
 We have sources which are generating data in different frequencies. Few sources are once a day, some are every few hours and few sources are really real time emitting data every few seconds. You can have hundreds of files coming in every now and then and you need a process to keep a track of the files being processed and making sure you process a file exactly once. 
 
 # The Autoloader Way 
-Now this is where I feel AutoLoader can really come handy to incrementally process the files being extracted from the source and dumped in the landing layer in an Event driven fashion. I could quickly get going with setting up AutoLoader and ingest the csv files which were arriving without any set frequency   
+Now, this is where I feel AutoLoader can come in handy to incrementally process the files being extracted from the source and dumped in the landing layer in an Event-driven fashion. I could quickly get going with setting up AutoLoader and ingest the CSV files which were arriving without any set frequency. Let’s look into some of the features of Databricks Autoloader and their functionalities.
+
+Below is the screenshot of the function which I created to process the data using Databricks Autoloader. At the end of this blog, you can also find the link for the notebook in my github repository.
+
+![Medalion-Architecture.png](https://cdn.hashnode.com/res/hashnode/image/upload/v1659029470333/uSLjgOxqt.png?auto=compress)
+
+Auto Loader provides a Structured Streaming source called cloudFiles which when prefixed with options enables to perform multiple actions to support the requirements of an Event Driven architecture.
+
+The first important option is the .format option which allows processing Avro, binary file, CSV, JSON, orc, parquet, and text file. There is no default value for this option and you need to specify the format of the file as a required option.
 
 
+```
+.option('cloudFiles.format', source_format)
+```
 
-Databricks AutoLoader incrementally and efficiently processes new data files as they arrive in cloud storage without any additional setup. It supports both batch as well as streaming way of ingesting data into the platform and I would definitely recommend using it if you are using Databricks to build your data platform. It takes away the need and complexity to build a data ingestion framework with all the features I have described earlier in this blog. 
+
+The option useNotifications allows you to choose whether you want to use the file notification mode or directory listing mode for detecting new files. If useNotifications is set to true, you need to provide the necessary permissions to create cloud resources. You can see the notifications being created in the Events section of Azure Storage once you start the job. Autoloader automatically sets up a notification service and queue service that subscribe to file events from the input directory. File notification mode is much better and recommended for a high volume of files coming into your landing zone.
+```
+.option("cloudFiles.useNotifications", "true")
+```
+
+![Medalion-Architecture.png](https://cdn.hashnode.com/res/hashnode/image/upload/v1659029247186/EaeTVcU00.png?auto=compress)
+
+I also wrote a small piece of code that identifies on the basis of the key columns, if the data is already present in the table. If the keys along with the records are present in the target table and there is a change in the record, the code will update the existing record in the target delta lake table. If the record does not exist against the keys, it will insert the record as a new record into the target delta lake table. 
+
+![Medalion-Architecture.png](https://cdn.hashnode.com/res/hashnode/image/upload/v1659029369530/qUMtADr-W.png?auto=compress)
+
+The .foreachBatch option allows you to specify a function that is executed on the output data of every micro-batch of the streaming query. So basically you can define an action as a function and this option will execute that option before loading the data into your delta table.
+
+Auto Loader keeps track of discovered files in the checkpoint location using RocksDB to provide exactly-once ingestion guarantees. You can use the checkpointLocation option to specify the path.
+
+
+```
+.foreachBatch(upsertToDelta)
+```
+
+Now I loved this option of .trigger where you can use Autoloader for both batch and streaming use cases. With this option set to true, your Autoloader job can be configured to start, process the files available in the source location and then stop. This helps you keep a check on the cost and you don't need to have the cluster up and running all the time. If you know when your files are going to arrive, you can orchestrate this with a time-based schedule.
+
+```
+.trigger(once=True)
+```
+
+Auto Loader keeps track of discovered files in the checkpoint location using RocksDB to provide exactly-once ingestion guarantees. You can use the checkpointLocation option to specify the path.
+
+
+```
+.option("checkpointLocation", "/tmp/sky/customers/_checkpoints")
+```
+
+
+Once you are ready, you can execute the Autoloader function with the parameters defined at the runtime. Now in the below example, I used the .tirgger option set to true, so the job ran and loaded all the data in target and applied the SCD Type 1. So any record which changed was updated in the target and all new records were added. The graph is pretty neat and works in real-time. So you can drop files in your source storage location and it will show up in the graph as Autoloader tries to process the files.
+
+![Medalion-Architecture.png](https://cdn.hashnode.com/res/hashnode/image/upload/v1659029336514/TS_S8xLlp.png?auto=compress)
+
+
+If you click the tab of Raw Data, you will find the below output in JSON format. which has a mine of information that can really help you in building a Data Observability Dashboard. It provides you the operational metadata with details of when the batch was run, how many records were processed, and some other information. To be honest, I still need to figure out how can I put this information to use. 
+```
+{
+  "id" : "7b9661ea-3438-4b2f-b41e-809043958ab0",
+  "runId" : "1bd6e990-0b08-451c-be46-29c00f6b8233",
+  "name" : "Merge New Data",
+  "timestamp" : "2022-07-08T14:40:54.500Z",
+  "batchId" : 7,
+  "numInputRows" : 0,
+  "inputRowsPerSecond" : 0.0,
+  "processedRowsPerSecond" : 0.0,
+  "durationMs" : {
+    "latestOffset" : 0,
+    "triggerExecution" : 0
+  },
+  "stateOperators" : [ ],
+  "sources" : [ {
+    "description" : "CloudFilesSource[/mnt/landing/customers/]",
+    "startOffset" : {
+      "seqNum" : 9,
+      "sourceVersion" : 1,
+      "lastBackfillStartTimeMs" : 1657033622925,
+      "lastBackfillFinishTimeMs" : 1657033623542
+    },
+    "endOffset" : {
+      "seqNum" : 9,
+      "sourceVersion" : 1,
+      "lastBackfillStartTimeMs" : 1657033622925,
+      "lastBackfillFinishTimeMs" : 1657033623542
+    },
+    "latestOffset" : null,
+    "numInputRows" : 0,
+    "inputRowsPerSecond" : 0.0,
+    "processedRowsPerSecond" : 0.0,
+    "metrics" : {
+      "approximateQueueSize" : "0",
+      "numBytesOutstanding" : "0",
+      "numFilesOutstanding" : "0"
+    }
+  } ],
+  "sink" : {
+    "description" : "ForeachBatchSink",
+    "numOutputRows" : -1
+  }
+}
+```
+
+
+To summarise, Databricks AutoLoader incrementally and efficiently processes new data files as they arrive in cloud storage without any additional setup. It supports both batches as well as streaming ways of ingesting data into the platform and I would definitely recommend using it if you are using Databricks to build your data platform. It takes away the need and complexity to build a data ingestion framework with all the features I have described earlier in this blog. Click here to access the Databricks notebook which I have created and used above. Additionally, I would love to hear your thoughts on this topic.
 
 
 # References
