@@ -69,6 +69,8 @@ I also wrote a small piece of code that identifies on the basis of the key colum
 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1659029369530/qUMtADr-W.png?auto=compress)
 
+![](https://cdn.hashnode.com/res/hashnode/image/upload/v1659029336514/TS_S8xLlp.png?auto=compress)
+
 The .foreachBatch option allows you to specify a function that is executed on the output data of every micro-batch of the streaming query. So basically you can define an action as a function and this option will execute that option before loading the data into your delta table.
 
 Auto Loader keeps track of discovered files in the checkpoint location using RocksDB to provide exactly-once ingestion guarantees. You can use the checkpointLocation option to specify the path.
@@ -97,9 +99,6 @@ Once you are ready, you can execute the Autoloader function with the parameters 
 ![](https://cdn.hashnode.com/res/hashnode/image/upload/v1659029336514/TS_S8xLlp.png?auto=compress)
 
 So any record which changed was updated in the target and all new records were added. The graph is pretty neat and works in real-time. So you can drop files in your source storage location and it will show up in the graph as Autoloader tries to process the files.
-
-
-
 
 If you click the tab of Raw Data, you will find the below output in JSON format. which has a mine of information that can really help you in building a Data Observability Dashboard. It provides you the operational metadata with details of when the batch was run, how many records were processed, and some other information. To be honest, I still need to figure out how can I put this information to use. 
 
