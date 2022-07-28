@@ -1,8 +1,8 @@
 ---
-title: Incremental Data Ingestion using Databricks Autoloader
+title: Incrementally loading data using Databricks Autoloader
 domain: factorsense.nl 
 tags: databricks, azure
-subtitle: Incremental processing of new data as they arrive in cloud storage without any additional setup.
+subtitle: Incrementally processing new data as they arrive in cloud storage without any additional setup.
 cover: https://cdn.hashnode.com/res/hashnode/image/upload/v1658824807546/fxJUh0mxf.jpg?auto=compress 
 ---
 # Background
