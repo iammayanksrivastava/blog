@@ -11,7 +11,7 @@ One of the most common use cases we have had in the ETL workloads is tracking wh
 Even though a lot has changed in last 15 years in terms of technology and we have moved from strictly on-prem to "Let's build Data Platform on Cloud" strategy, few basic concepts are still the same and form the core of any data platform. Even till date we have the same problem statement where we receive the data from the source systems which we would like to process incrementally and also achieve the guarantee of processed exactly one for every file.  
 
 This is a multi-part blog and I will be covering AutoLoader, Delta Live Tables and Workflows in this series. This is the first part of the series where I cover Databricks AutoLoader. 
-# Ingesting Data from Source 
+# Ingesting Data from Source - The Traditional Way
 
 Typically, we all would like to have an Event driven orchestration and below is what you would like to do: 
 
